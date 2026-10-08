@@ -4,10 +4,11 @@
 
 #include <uapi/linux/seccomp.h>
 
-#define SECCOMP_FILTER_FLAG_MASK	(SECCOMP_FILTER_FLAG_TSYNC | \
-					 SECCOMP_FILTER_FLAG_LOG | \
-					 SECCOMP_FILTER_FLAG_SPEC_ALLOW | \
-					 SECCOMP_FILTER_FLAG_NEW_LISTENER)
+#define SECCOMP_FILTER_FLAG_MASK (SECCOMP_FILTER_FLAG_TSYNC | \
+                                  SECCOMP_FILTER_FLAG_LOG | \
+                                  SECCOMP_FILTER_FLAG_SPEC_ALLOW | \
+                                  SECCOMP_FILTER_FLAG_NEW_LISTENER | \
+                                  SECCOMP_FILTER_FLAG_COCKROACH)
 
 #ifdef CONFIG_SECCOMP
 
@@ -29,9 +30,10 @@ struct seccomp_filter;
  *          is no read locking.
  */
 struct seccomp {
-	int mode;
-	atomic_t filter_count;
-	struct seccomp_filter *filter;
+    int mode;
+    atomic_t filter_count;
+    struct seccomp_filter *filter;
+    bool cockroach;
 };
 
 #ifdef CONFIG_HAVE_ARCH_SECCOMP_FILTER
