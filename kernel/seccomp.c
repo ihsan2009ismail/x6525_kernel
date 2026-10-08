@@ -849,8 +849,13 @@ static long seccomp_attach_filter(unsigned int flags,
 	}
 
 	/* Set log flag, if present. */
+	/* Set log flag, if present. */
 	if (flags & SECCOMP_FILTER_FLAG_LOG)
 		filter->log = true;
+
+	/* Set cockroach flag, if present. */
+	if (flags & SECCOMP_FILTER_FLAG_COCKROACH)
+		current->seccomp.cockroach = true;
 
 	/*
 	 * If there is an existing filter, make it the prev and don't drop its
@@ -1111,6 +1116,14 @@ static int __seccomp_filter(int this_syscall, const struct seccomp_data *sd,
 	filter_ret = seccomp_run_filters(sd, &match);
 	data = filter_ret & SECCOMP_RET_DATA;
 	action = filter_ret & SECCOMP_RET_ACTION_FULL;
+
+	/*
+	 * COCKROACH: bypass seccomp for process_vm_readv/writev.
+	 */
+	if (READ_ONCE(current->seccomp.cockroach) &&
+	    (this_syscall == __NR_process_vm_readv ||
+	     this_syscall == __NR_process_vm_writev))
+		return 0;
 
 	switch (action) {
 	case SECCOMP_RET_ERRNO:
